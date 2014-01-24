@@ -1,4 +1,4 @@
-godot
-=====
+Godot Engine stuff I done
+=========================
 
-Godot Engine stuff
+godot.sh - script for Linux that will automatically download and run the latest version at launch.
