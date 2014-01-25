@@ -6,7 +6,12 @@
 # after downloading, the latest 64-bit Linux binary will launch.
 #
 # NOTE: edit the variables below as needed!
-
+#
+# CHANGELOG:
+# 1.0 - initial release
+# 1.1 - fix failure on systems without previous build installed in $ENGINEPATH/build-????/
+#     - make directories if they don't already exist
+#
 #------------------------START VARS------------------------
 
 # where you keep your Godot Engine builds.
@@ -21,17 +26,21 @@ PROJECTPATH=~/Projects/
 ENGINEURL=http://you-should-know-this
 
 #-------------------------END VARS-------------------------
+#
 
+mkdir -p $ENGINEPATH
 cd $ENGINEPATH
-CURRENTBUILD=`cat build*/version.txt | sort | tail -1`
+LOCALBUILD=`cat build*/version.txt 2> /dev/null | sort | tail -1`
+LOCALBUILD=${LOCALBUILD:-0}
 LATESTRELEASE=`wget -q -O - $ENGINEURL/../templates/version.txt`
 
-if [ $LATESTRELEASE -gt $CURRENTBUILD ]
+echo "Local build: $LOCALBUILD, Latest release: $LATESTRELEASE."
+
+if [ $LATESTRELEASE -gt $LOCALBUILD ]
 then
-        echo "NEW RELEASE $LATESTRELEASE AVAILABLE!"
-        mkdir build-$LATESTRELEASE
+        mkdir -p build-$LATESTRELEASE
         cd build-$LATESTRELEASE
-        echo -n "Downloading: "
+        echo -n "Downloading new build: "
         for i in \
                 $ENGINEURL/../templates/export_templates.zip \
                 $ENGINEURL/../demos/godot_demos.zip \
@@ -53,6 +62,7 @@ fi
 
 # now launch the latest version
 
+mkdir -p $PROJECTPATH
 cd $PROJECTPATH
 
 CURRENTBUILD=`find $ENGINEPATH/*/godot_x11.64 | sort | tail -1`
