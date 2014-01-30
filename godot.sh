@@ -11,6 +11,7 @@
 # 1.0 - initial release
 # 1.1 - fix failure on systems without previous build installed in $ENGINEPATH/build-????/
 #     - make directories if they don't already exist
+# 1.2 - add MacOSX build to download list
 #
 #------------------------START VARS------------------------
 
@@ -42,14 +43,15 @@ then
         cd build-$LATESTRELEASE
         echo -n "Downloading new build: "
         for i in \
-                $ENGINEURL/../templates/export_templates.zip \
-                $ENGINEURL/../demos/godot_demos.zip \
                 $ENGINEURL/godot \
-                $ENGINEURL/godot_win32.exe \
-                $ENGINEURL/godot_win64.exe \
                 $ENGINEURL/godot_x11.64 \
                 $ENGINEURL/linux_server \
                 $ENGINEURL/linux_server.64 \
+                $ENGINEURL/godot_win32.exe \
+                $ENGINEURL/godot_win64.exe \
+                $ENGINEURL/GodotOSX32.zip \
+                $ENGINEURL/../templates/export_templates.zip \
+                $ENGINEURL/../demos/godot_demos.zip \
                 $ENGINEURL/../templates/version.txt
         do
                 wget -q -c $i
