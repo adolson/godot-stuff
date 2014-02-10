@@ -12,6 +12,7 @@
 # 1.1 - fix failure on systems without previous build installed in $ENGINEPATH/build-????/
 #     - make directories if they don't already exist
 # 1.2 - add MacOSX build to download list
+# 1.3 - add URL for downloads, as it is now public
 #
 #------------------------START VARS------------------------
 
@@ -22,9 +23,8 @@ ENGINEPATH=~/.bin/GodotEngine/
 # the script will simply change to this directory before launching Godot)
 PROJECTPATH=~/Projects/
 
-# the next line is the URL to the Linux binary, without "/godot_x11.64" on the end.
-# you need to add it yourself, because it's not public yet.
-ENGINEURL=http://you-should-know-this
+# the URL to the Godot Engine binary builds.
+ENGINEURL=http://www.godotengine.org/builds
 
 #-------------------------END VARS-------------------------
 #
@@ -33,7 +33,7 @@ mkdir -p $ENGINEPATH
 cd $ENGINEPATH
 LOCALBUILD=`cat build*/version.txt 2> /dev/null | sort | tail -1`
 LOCALBUILD=${LOCALBUILD:-0}
-LATESTRELEASE=`wget -q -O - $ENGINEURL/../templates/version.txt`
+LATESTRELEASE=`wget -q -O - $ENGINEURL/templates/version.txt`
 
 echo "Local build: $LOCALBUILD, Latest release: $LATESTRELEASE."
 
@@ -43,16 +43,16 @@ then
         cd build-$LATESTRELEASE
         echo -n "Downloading new build: "
         for i in \
-                $ENGINEURL/godot \
-                $ENGINEURL/godot_x11.64 \
-                $ENGINEURL/linux_server \
-                $ENGINEURL/linux_server.64 \
-                $ENGINEURL/godot_win32.exe \
-                $ENGINEURL/godot_win64.exe \
-                $ENGINEURL/GodotOSX32.zip \
-                $ENGINEURL/../templates/export_templates.zip \
-                $ENGINEURL/../demos/godot_demos.zip \
-                $ENGINEURL/../templates/version.txt
+                $ENGINEURL/release/godot \
+                $ENGINEURL/release/godot_x11.64 \
+                $ENGINEURL/release/linux_server \
+                $ENGINEURL/release/linux_server.64 \
+                $ENGINEURL/release/godot_win32.exe \
+                $ENGINEURL/release/godot_win64.exe \
+                $ENGINEURL/release/GodotOSX32.zip \
+                $ENGINEURL/templates/export_templates.zip \
+                $ENGINEURL/demos/godot_demos.zip \
+                $ENGINEURL/templates/version.txt
         do
                 wget -q -c $i
                 echo -n "*"
