@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # this script will download the latest build of Godot Engine.
 # this includes getting the server and client binaries, demos, templates.
@@ -17,6 +17,7 @@
 # 1.5 - fixed bug where timestamp builds weren't considered newer than old version.txt builds
 #     - added option to check for updates only, do not launch Godot. call ./godot.sh update
 #     - added option to skip updates and just launch latest installed. call ./godot.sh launch
+# 1.6 - changed interpreter to bash to fix another bug
 #
 #------------------------START VARS------------------------
 
