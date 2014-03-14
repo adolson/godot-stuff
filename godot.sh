@@ -18,6 +18,7 @@
 #     - added option to check for updates only, do not launch Godot. call ./godot.sh update
 #     - added option to skip updates and just launch latest installed. call ./godot.sh launch
 # 1.6 - changed interpreter to bash to fix another bug
+# 1.7 - added 32-bit Linux binary to the download list
 #
 #------------------------START VARS------------------------
 
@@ -58,6 +59,7 @@ then
 		for i in \
 			$ENGINEURL/release/godot \
 			$ENGINEURL/release/godot_x11.64 \
+			$ENGINEURL/release/godot_x11.32 \
 			$ENGINEURL/release/linux_server \
 			$ENGINEURL/release/linux_server.64 \
 			$ENGINEURL/release/godot_win32.exe \
