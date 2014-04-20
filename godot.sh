@@ -19,6 +19,8 @@
 #     - added option to skip updates and just launch latest installed. call ./godot.sh launch
 # 1.6 - changed interpreter to bash to fix another bug
 # 1.7 - added 32-bit Linux binary to the download list
+# 1.8 - export templates filename and location has changed
+#     - added option to pull, build, and run latest code from github. call ./godot.sh git
 #
 #------------------------START VARS------------------------
 
@@ -35,12 +37,30 @@ ENGINEURL=http://www.godotengine.org/builds
 #-------------------------END VARS-------------------------
 #
 
+mkdir -p $ENGINEPATH
+cd $ENGINEPATH
+
+
+# new option to automate pulling, building, and running the current git version of Godot
+if [ $@ == "git" ]
+then
+        echo "Will pull and build the current Godot Engine code from github."
+        if [[ ! -d build-git ]]
+        then
+                git clone https://github.com/okamstudio/godot.git build-git
+        fi
+        cd build-git
+        git pull
+        scons bin/godot target=release_debug
+        echo "All done. If this failed, make sure you have all the necessary tools and"
+        echo "llibraries installed and try again."
+        bin/godot
+fi
+
 # if we did not choose to only launch, let's run the update block
-if [[ $@ != launch ]]
+if [[ $@ != "launch" ]] && [[ $@ != "git" ]]
 then
 
-	mkdir -p $ENGINEPATH
-	cd $ENGINEPATH
 
 	LOCALBUILD=`find build-*/godot_x11.64 2> /dev/null | sort -V | tail -1 | sed 's/build-//g;s/\/godot_x11.64//g'`
 	LOCALBUILD=${LOCALBUILD:-0}
@@ -65,7 +85,7 @@ then
 			$ENGINEURL/release/godot_win32.exe \
 			$ENGINEURL/release/godot_win64.exe \
 			$ENGINEURL/release/GodotOSX32.zip \
-			$ENGINEURL/templates/export_templates.zip \
+			$ENGINEURL/export_templates.tpz \
 			$ENGINEURL/demos/godot_demos.zip
 		do
 			wget -q -c $i
@@ -78,7 +98,7 @@ fi
 
 
 # if we aren't only updating, launch the latest version
-if [[ $@ != update ]]
+if [[ $@ != "update" ]] && [[ $@ != "git"  ]]
 then
 	mkdir -p $PROJECTPATH
 	cd $PROJECTPATH
