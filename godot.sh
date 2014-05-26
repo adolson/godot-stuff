@@ -5,7 +5,6 @@
 # it keeps the old builds, in case you need one due to breakage or somesuch.
 # after downloading, the latest 64-bit Linux binary will launch.
 #
-# NOTE: edit the variables below as needed!
 #
 # CHANGELOG:
 # 1.0 - initial release
@@ -21,6 +20,8 @@
 # 1.7 - added 32-bit Linux binary to the download list
 # 1.8 - export templates filename and location has changed
 #     - added option to pull, build, and run latest code from github. call ./godot.sh git
+# 1.9 - Okam uses a new build server, updated code to pull from there
+#     - added support for ~/.getgodot.conf config file for the path variables
 #
 #------------------------START VARS------------------------
 
@@ -28,21 +29,25 @@
 ENGINEPATH=~/.bin/GodotEngine/
 
 # where you keep your projects.
-# the script will simply change to this directory before launching Godot)
+# the script will simply change to this directory before launching Godot.
 PROJECTPATH=~/Projects/
-
-# the URL to the Godot Engine binary builds.
-ENGINEURL=http://www.godotengine.org/builds
 
 #-------------------------END VARS-------------------------
 #
+
+# override the above vars in a user config file
+if [ -r ~/.getgodot.conf ]
+then
+	echo "Loading user config file."
+	source ~/.getgodot.conf
+fi
 
 mkdir -p $ENGINEPATH
 cd $ENGINEPATH
 
 
 # new option to automate pulling, building, and running the current git version of Godot
-if [ $@ == "git" ]
+if [[ $@ == "git" ]]
 then
         echo "Will pull and build the current Godot Engine code from github."
         if [[ ! -d build-git ]]
@@ -62,34 +67,23 @@ if [[ $@ != "launch" ]] && [[ $@ != "git" ]]
 then
 
 
-	LOCALBUILD=`find build-*/godot_x11.64 2> /dev/null | sort -V | tail -1 | sed 's/build-//g;s/\/godot_x11.64//g'`
+	LOCALBUILD=`find build-*/godot_x11*.64 2> /dev/null | sort -V | tail -1 | awk -F- '{ print $2  }' | awk -F/ '{ print $1  }'`
 	LOCALBUILD=${LOCALBUILD:-0}
 
-	REMOTEDATE=`wget --server-response --spider http://www.godotengine.org/builds/release/godot_x11.64 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
+	REMOTEDATE=`wget --server-response --spider http://builds.godotengine.org/builds.html 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
 	LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
 	LATESTBUILD=${LATESTBUILD:-0}
 
 	echo "Local build: $LOCALBUILD, Latest release: $LATESTBUILD."
-
 	if [ $LATESTBUILD -gt $LOCALBUILD ]
 	then
 		mkdir -p build-$LATESTBUILD
 		cd build-$LATESTBUILD
-		echo -n "Downloading new build: "
-		for i in \
-			$ENGINEURL/release/godot \
-			$ENGINEURL/release/godot_x11.64 \
-			$ENGINEURL/release/godot_x11.32 \
-			$ENGINEURL/release/linux_server \
-			$ENGINEURL/release/linux_server.64 \
-			$ENGINEURL/release/godot_win32.exe \
-			$ENGINEURL/release/godot_win64.exe \
-			$ENGINEURL/release/GodotOSX32.zip \
-			$ENGINEURL/export_templates.tpz \
-			$ENGINEURL/demos/godot_demos.zip
+		echo -n "Downloading new release: "
+		for i in `wget -q http://builds.godotengine.org/builds.html -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1 }'`
 		do
-			wget -q -c $i
 			echo -n "*"
+			wget $i -q -c
 		done
 		echo "*"
 		echo "Done!"
@@ -103,7 +97,7 @@ then
 	mkdir -p $PROJECTPATH
 	cd $PROJECTPATH
 
-	CURRENTBUILD=`find $ENGINEPATH/build-*/godot_x11.64 | sort -V | tail -1`
+	CURRENTBUILD=`find $ENGINEPATH/build-*/godot_x11*.64 | sort -V | tail -1`
 
 	chmod +x $CURRENTBUILD
 	exec $CURRENTBUILD
