@@ -22,6 +22,7 @@
 #     - added option to pull, build, and run latest code from github. call ./godot.sh git
 # 1.9 - Okam uses a new build server, updated code to pull from there
 #     - added support for ~/.getgodot.conf config file for the path variables
+# 2.0 - MAJOR RELEASE: fixed a typo in an echo statement
 #
 #------------------------START VARS------------------------
 
@@ -58,7 +59,7 @@ then
         git pull
         scons bin/godot target=release_debug
         echo "All done. If this failed, make sure you have all the necessary tools and"
-        echo "llibraries installed and try again."
+        echo "libraries installed and try again."
         bin/godot
 fi
 
