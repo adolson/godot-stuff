@@ -23,6 +23,7 @@
 # 1.9 - Okam uses a new build server, updated code to pull from there
 #     - added support for ~/.getgodot.conf config file for the path variables
 # 2.0 - MAJOR RELEASE: fixed a typo in an echo statement
+# 2.1 - fixed a bug where empty, false new build directories were sometimes created
 #
 #------------------------START VARS------------------------
 
@@ -78,16 +79,22 @@ then
 	echo "Local build: $LOCALBUILD, Latest release: $LATESTBUILD."
 	if [ $LATESTBUILD -gt $LOCALBUILD ]
 	then
-		mkdir -p build-$LATESTBUILD
-		cd build-$LATESTBUILD
-		echo -n "Downloading new release: "
-		for i in `wget -q http://builds.godotengine.org/builds.html -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1 }'`
-		do
-			echo -n "*"
-			wget $i -q -c
-		done
-		echo "*"
-		echo "Done!"
+		ENGINEFILES=`wget -q http://builds.godotengine.org/builds.html -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1  }'``'"'`
+		if [[ $ENGINEFILES == "" ]]
+		then
+			echo "False alarm. No new files found at this time."
+		else
+			mkdir -p build-$LATESTBUILD
+			cd build-$LATESTBUILD
+			echo -n "Downloading new release: "
+			for i in $ENGINEFILES
+			do
+				echo -n "*"
+				wget $i -q -c
+			done
+			echo "*"
+			echo "Done!"
+		fi
 	fi
 fi
 
