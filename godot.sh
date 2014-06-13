@@ -5,6 +5,14 @@
 # it keeps the old builds, in case you need one due to breakage or somesuch.
 # after downloading, the latest 64-bit Linux binary will launch.
 #
+# script by Dana Olson of ShineUponThee - www.shineuponthee.com
+#
+# license: MIT (same as Godot Engine)
+#
+# you can always find the latest version of this script at:
+#
+# https://github.com/adolson/godot-stuff/blob/master/godot.sh
+# https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh
 #
 # CHANGELOG:
 # 1.0 - initial release
@@ -24,6 +32,8 @@
 #     - added support for ~/.getgodot.conf config file for the path variables
 # 2.0 - MAJOR RELEASE: fixed a typo in an echo statement
 # 2.1 - fixed a bug where empty, false new build directories were sometimes created
+# 2.2 - added notes at the top about license and where to find latest version of this script
+#     - fixed bug in changes made in 2.1 release
 #
 #------------------------START VARS------------------------
 
@@ -79,7 +89,7 @@ then
 	echo "Local build: $LOCALBUILD, Latest release: $LATESTBUILD."
 	if [ $LATESTBUILD -gt $LOCALBUILD ]
 	then
-		ENGINEFILES=`wget -q http://builds.godotengine.org/builds.html -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1  }'``'"'`
+		ENGINEFILES=`wget -q http://builds.godotengine.org/builds.html -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1  }'`
 		if [[ $ENGINEFILES == "" ]]
 		then
 			echo "False alarm. No new files found at this time."
