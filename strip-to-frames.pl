@@ -23,6 +23,7 @@ if (!$PREFIX) {
 }
 my $BORDER = $ARGV[4] ||= 0;
 my $ALLOWODD = $ARGV[5] ||= 0; # force width and height to be a power of 2
+my $TRANSBG = $ARGV[6] ||= 'magenta'; # background color to make transparent
 
 my $SPRITECOUNT = $COLS * $ROWS; # number of sprites
 my $DIGITS = "%0" . length($SPRITECOUNT) . "d"; # automatic format for sprite numbering
@@ -30,7 +31,7 @@ my $DIGITS = "%0" . length($SPRITECOUNT) . "d"; # automatic format for sprite nu
 if (!$SOURCE) {
         print "\nERROR:\n\tYou must specify a source sprite sheet.";
         print "\n\nSYNTAX:";
-        print "\n\tstrip-to-frames.pl source [cols=20] [rows=1] [prefix] [border] [oddsize]";
+        print "\n\tstrip-to-frames.pl source [cols=20] [rows=1] [prefix] [border] [oddsize] [transbg]";
         print "\n\nOPTIONS:";
         print "\n\tsource\t- source image file";
         print "\n\tcols\t- number of sprite columns (default=20)";
@@ -38,6 +39,7 @@ if (!$SOURCE) {
         print "\n\tprefix\t- sprite frame image prefix (default=source-f)";
         print "\n\tborder\t- size, in px, of transparent border padding to add to image (default=0)";
         print "\n\toddsize\t- set to allow odd-numbered width and height dimensions (default=0)";
+	print "\n\ttransbg\t- which color of the background to change to transparent (default=magenta)";
         print "\n\n";
         exit;
 }
@@ -78,7 +80,7 @@ foreach (1..$ROWS) {
                 #FIXME this should maybe be automatic - pull color from first pixel?
                 #FIXME maybe only if there is no alpha channel already? 
                 $image->Set('alpha'=>'set');
-                $image->Transparent('magenta');
+                $image->Transparent($TRANSBG);
                 # repage
                 $image->Set('page'=>'0x0+0+0');
                 # write to file
