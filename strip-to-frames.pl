@@ -6,6 +6,13 @@
 # can also ensure there is a custom size transparent border around each frame.
 # can also ensure dimensions are even numbers (better mipmapping)
 
+# resulting frames can be merged back into a sprite sheet using imagemagick:
+# montage -background transparent -mode Concatenate sprites-f* spritesheet.png
+# if resulting sheet is too wide or tall for Godot (>2048px), try changing
+# the number of vertical or horizontal tiles
+# montage -tiles 5x -background transparent -mode Concatenate sprites-f* spritesheet.png
+# montage -tiles x5 -background transparent -mode Concatenate sprites-f* spritesheet.png
+
 use strict;
 use warnings;
 use Image::Magick;
