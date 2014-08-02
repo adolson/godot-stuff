@@ -71,6 +71,7 @@
 # 2.3 - added usage info to comments
 #     - script will now check for newer versions of itself, based on md5sum mismatch
 #     - added some zenity stuff to inform the user when a new build or script is available
+# 2.4 - Okam again uses a new build server, updated URL
 #
 ##################################################################################################################
 
@@ -83,7 +84,7 @@ ENGINEPATH=~/.bin/GodotEngine/
 PROJECTPATH=~/Projects/
 
 # where the engine builds page resides
-ENGINEURL=http://builds.godotengine.org/builds.html
+ENGINEURL=https://godot.blob.core.windows.net/builds/builds.html
 
 # temporary directory, used for fetching latest script for comparison purposes
 TMPDIR=/tmp/getgodot
