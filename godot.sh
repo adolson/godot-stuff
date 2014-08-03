@@ -9,7 +9,7 @@
 # This script will download the latest build of Godot Engine.
 # This includes getting the server and client binaries, demos, templates.
 # It keeps the old builds, in case you need one due to breakage or somesuch.
-# After downloading, the latest 64-bit Linux binary will launch.
+# After downloading, the latest Linux binary will launch.
 #
 # USAGE:
 #
@@ -72,6 +72,10 @@
 #     - script will now check for newer versions of itself, based on md5sum mismatch
 #     - added some zenity stuff to inform the user when a new build or script is available
 # 2.4 - Okam again uses a new build server, updated URL
+# 2.5 - Okam played tricks on us and changed the downloads to individual webpages
+#     - script detects architecture automatically now
+#     - only downloads the appropriate Linux binary + demos + templates by default
+#     - options to disable/enable download of any files (except the Linux build for the current architecture)
 #
 ##################################################################################################################
 
@@ -83,13 +87,27 @@ ENGINEPATH=~/.bin/GodotEngine/
 # where to keep Godot projects - the script will simply change to this directory before launching Godot
 PROJECTPATH=~/Projects/
 
-# where the engine builds page resides
-ENGINEURL=https://godot.blob.core.windows.net/builds/builds.html
+# where the engine build reside
+ENGINEURL=https://godot.blob.core.windows.net
 
 # temporary directory, used for fetching latest script for comparison purposes
 TMPDIR=/tmp/getgodot
 
-# override the above vars in a user config file
+# check if we should launch 64-bit or 32-bit
+ARCH=`uname -m`
+
+# don't download OSX, Windows, non-arch Linux, or server builds by default
+GET_NONARCHLIN=0
+GET_SERVER=0
+GET_OSX32=0
+GET_WIN32=0
+GET_WIN64=0
+
+# download templates and demos by default
+GET_DEMOS=1
+GET_TEMPLATES=1
+
+# override any of the above vars in a user config file
 if [[ -r ~/.getgodot.conf ]]
 then
 	if [[ -t 0 ]]
@@ -99,6 +117,32 @@ then
 	source ~/.getgodot.conf
 fi
 
+# files to download
+BUILDFILES=( export_templates-1.0devel.tpz godot_demos-1.0devel.zip godot_x11-1.0devel.32 godot_x11-1.0devel.64 linux_server-1.0devel.64 GodotOSX32-1.0devel.zip godot_win32-1.0devel.exe godot_win64-1.0devel.exe )
+
+if [[ $GET_WIN64 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:7} ${BUILDFILES[@]:8}); fi
+
+if [[ $GET_WIN32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:6} ${BUILDFILES[@]:7}); fi
+
+if [[ $GET_OSX32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:5} ${BUILDFILES[@]:6}); fi
+
+if [[ $GET_SERVER -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:4} ${BUILDFILES[@]:5}); fi
+
+if [[ $GET_NONARCHLIN -eq 0 ]]
+then
+        if [[ $ARCH == 'x86_64' ]]
+        then
+                BUILDFILES=(${BUILDFILES[@]:0:2} ${BUILDFILES[@]:3})
+        else
+                BUILDFILES=(${BUILDFILES[@]:0:3} ${BUILDFILES[@]:4})
+        fi
+fi
+
+if [[ $GET_DEMOS -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:1} ${BUILDFILES[@]:2}); fi
+
+if [[ $GET_TEMPLATES -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:1}); fi
+
+# make and change to engine directory
 mkdir -p $ENGINEPATH
 cd $ENGINEPATH
 
@@ -173,10 +217,17 @@ fi
 # if we did not choose to only launch, let's run the update block
 if [[ $@ != "launch" ]] && [[ $@ != "git" ]]
 then
-	LOCALBUILD=`find build-*/godot_x11*.64 2> /dev/null | sort -V | tail -1 | awk -F- '{ print $2  }' | awk -F/ '{ print $1  }'`
+        if [[ $ARCH == 'x86_64' ]]
+        then
+	        LOCALBUILD=`find build-*/godot_x11*.64 2> /dev/null | sort -V | tail -1 | awk -F- '{ print $2  }' | awk -F/ '{ print $1  }'`
+        else
+	        LOCALBUILD=`find build-*/godot_x11*.32 2> /dev/null | sort -V | tail -1 | awk -F- '{ print $2  }' | awk -F/ '{ print $1  }'`
+        fi
 	LOCALBUILD=${LOCALBUILD:-0}
 
-	REMOTEDATE=`wget --server-response --spider $ENGINEURL 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
+        # grab the latest release date from the builds.html page
+	REMOTEDATE=`wget --server-response --spider $ENGINEURL/builds/builds.html 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
+
 	LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
 	LATESTBUILD=${LATESTBUILD:-0}
 
@@ -186,38 +237,31 @@ then
         fi
 	if [ $LATESTBUILD -gt $LOCALBUILD ]
 	then
-		ENGINEFILES=`wget -q $ENGINEURL -O - | sed 's/</\n/g' | grep "^a href" | sed 's/a href="//g' | awk -F\" '{ print $1  }'`
-		if [[ $ENGINEFILES == "" ]]
-		then
+		mkdir -p build-$LATESTBUILD
+		cd build-$LATESTBUILD
+		if [[ -x $ZENITY ]]
+                then
+                        $ZENITY --notification --text="Downloading new version of Godot Engine ($LATESTBUILD)." &
+                fi
+                if [[ -t 0 ]]
+                then
+                        echo -n "Downloading new release: "
+                fi
+
+	        BUILDDATE=`date -d "$REMOTEDATE" +%Y-%m-%d`
+		for i in ${BUILDFILES[@]}
+		do
                         if [[ -t 0 ]]
                         then
-			        echo "False alarm. No new files found at this time."
+			        echo -n "*"
                         fi
-		else
-			mkdir -p build-$LATESTBUILD
-			cd build-$LATESTBUILD
-		        if [[ -x $ZENITY ]]
-                        then
-                                $ZENITY --notification --text="Downloading new version of Godot Engine ($LATESTBUILD)." &
-                        fi
-                        if [[ -t 0 ]]
-                        then
-			        echo -n "Downloading new release: "
-                        fi
-			for i in $ENGINEFILES
-			do
-                                if [[ -t 0 ]]
-                                then
-				        echo -n "*"
-                                fi
-				wget $i -q -c
-			done
-                        if [[ -t 0 ]]
-                        then
-			        echo "*"
-			        echo "Done!"
-                        fi
-		fi
+                        wget $ENGINEURL/devel/$BUILDDATE/$i -q -c
+		done
+                if [[ -t 0 ]]
+                then
+			echo "*"
+		        echo "Done!"
+                fi
 	fi
 fi
 
@@ -228,7 +272,13 @@ then
 	mkdir -p $PROJECTPATH
 	cd $PROJECTPATH
 
-	CURRENTBUILD=`find $ENGINEPATH/build-*/godot_x11*.64 | sort -V | tail -1`
+        # detect which arch to launch
+        if [[ $ARCH == 'x86_64' ]]
+        then
+	        CURRENTBUILD=`find $ENGINEPATH/build-*/godot_x11*.64 | sort -V | tail -1`
+        else
+	        CURRENTBUILD=`find $ENGINEPATH/build-*/godot_x11*.32 | sort -V | tail -1`
+        fi
 
 	chmod +x $CURRENTBUILD
 	exec $CURRENTBUILD
