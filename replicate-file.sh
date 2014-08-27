@@ -28,8 +28,8 @@ PROJECTPATH=~/Projects
 # This script is written and maintained by Dana Olson of Shine Upon Thee
 # http://www.shineuponthee.com/
 # 
-# https://github.com/adolson/godot-stuff/blob/master/godot.sh
-# https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh
+# https://github.com/adolson/godot-stuff/blob/master/replicate-file.sh
+# https://raw.githubusercontent.com/adolson/godot-stuff/master/replicate-file.sh
 #
 # It is licensed under the X11/Expat/"MIT" terms (whatever the Godot Engine uses)
 #
@@ -37,6 +37,7 @@ PROJECTPATH=~/Projects
 #
 # 1.0 - initial release
 # 1.1 - verbiage fixes
+# 1.2 - link fix, renamed script
 #
 ##################################################################################################################
 
@@ -55,7 +56,7 @@ if [[ ! -f $1 || ! -r $1 ]]
 then
         echo "No master file specified."
         echo "Usage:"
-        echo "          ./replicate-copies.sh <file>"
+        echo "          ./replicate-file.sh <file>"
         echo
         exit
 fi
@@ -65,7 +66,7 @@ if [[ ! -f $MASTER || ! -r $MASTER ]]
 then
         echo "Specified master file could not be read."
         echo "Usage:"
-        echo "          ./replicate-copies.sh <file>"
+        echo "          ./replicate-file.sh <file>"
         echo
         exit
 fi
