@@ -36,6 +36,7 @@ PROJECTPATH=~/Projects
 # CHANGELOG:
 #
 # 1.0 - initial release
+# 1.1 - verbiage fixes
 #
 ##################################################################################################################
 
@@ -80,12 +81,12 @@ MODULE=`basename $MASTER`
 INSTALLED=`find $PROJECTPATH -name "$MODULE" ! -path $MASTER`
 if [[ $INSTALLED == "" ]]
 then
-	echo "No copies of the $MODULE module to update in the project directory."
+	echo "No copies of $MODULE to update in $PROJECTPATH."
 	echo
 	exit
 fi
 
-echo "Update modules:"
+echo "Update files:"
 echo
 find $PROJECTPATH -name "$MODULE" ! -path $MASTER -exec echo " * {}" \;
 
