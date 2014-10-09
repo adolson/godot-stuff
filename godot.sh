@@ -25,14 +25,27 @@
 # CONFIG:
 #
 # An optional config file can be created as ~/.getgodot.conf.
-# Setting the following option will change the working directory when launching Godot:
-#       PROJECTPATH=/path/to/projects
 # Setting the following option will change where the Godot builds get downloaded to:
 #       ENGINEPATH=/path/to/godot
 # Setting the following option will change where we download the temporary copy of the latest version of this script:
 #	TMPDIR=/tmp
 # Setting the following option will change the URL where OKAM hosts the builds.html file (advise against changing this manually):
 #	ENGINEURL=https://godot.blob.core.windows.net/builds/builds.html
+# Setting the following option will enable downloading the Linux build for the architecture opposite of what you're running.
+# ie: If you are on 64-bit Linux, setting this will download both 64-bit and 32-bit Linux binaries:
+#       GET_NONARCHLIN=1
+# Setting the following option will enable downloading the Linux server binary:
+#       GET_SERVER=1
+# Setting the following option will enable downloading the Mac OSX 32-bit binary:
+#       GET_OSX32=1
+# Setting the following option will enable downloading the Windows 32-bit binary:
+#       GET_WIN32=1
+# Setting the following option will enable downloading the Windows 64-bit binary:
+#       GET_WIN64=1
+# Setting the following option will disable downloading the demos archive:
+#       GET_DEMOS=0
+# Setting the following option will disable downloading the export templates:
+#       GET_TEMPLATES=0
 #
 # NOTES:
 #
@@ -76,6 +89,9 @@
 #     - script detects architecture automatically now
 #     - only downloads the appropriate Linux binary + demos + templates by default
 #     - options to disable/enable download of any files (except the Linux build for the current architecture)
+# 2.6 - fixed bug where user is falsely notified of new build when offline or experiencing other network issues
+#     - removed project path options, as our changes supporting this natively in the engine were merged recently
+#     - added commentary about download options added in 2.5 update
 #
 ##################################################################################################################
 
@@ -83,9 +99,6 @@
 
 # where to keep the Godot Engine builds
 ENGINEPATH=~/.bin/GodotEngine/
-
-# where to keep Godot projects - the script will simply change to this directory before launching Godot
-PROJECTPATH=~/Projects/
 
 # where the engine build reside
 ENGINEURL=https://godot.blob.core.windows.net
@@ -227,9 +240,14 @@ then
 
         # grab the latest release date from the builds.html page
 	REMOTEDATE=`wget --server-response --spider $ENGINEURL/builds/builds.html 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
-
-	LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
-	LATESTBUILD=${LATESTBUILD:-0}
+        if [[ $REMOTEDATE != "" ]]
+        then
+                LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
+        	LATESTBUILD=${LATESTBUILD:-0}
+        else
+                LATESTBUILD=$LOCALBUILD
+                echo "Network connection error; assuming no new release is available at this time."
+        fi
 
 	if [[ -t 0 ]]
         then
