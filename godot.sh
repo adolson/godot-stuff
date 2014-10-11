@@ -46,6 +46,8 @@
 #       GET_DEMOS=0
 # Setting the following option will disable downloading the export templates:
 #       GET_TEMPLATES=0
+# Setting the following option will disable downloading the collada exporter for Blender:
+#       GET_COLLADA=0
 #
 # NOTES:
 #
@@ -92,6 +94,7 @@
 # 2.6 - fixed bug where user is falsely notified of new build when offline or experiencing other network issues
 #     - removed project path options, as our changes supporting this natively in the engine were merged recently
 #     - added commentary about download options added in 2.5 update
+# 2.7 - added the better collada Blender export plugin to the downloads
 #
 ##################################################################################################################
 
@@ -116,9 +119,10 @@ GET_OSX32=0
 GET_WIN32=0
 GET_WIN64=0
 
-# download templates and demos by default
+# download templates and demos and collada exporter by default
 GET_DEMOS=1
 GET_TEMPLATES=1
+GET_COLLADA=1
 
 # override any of the above vars in a user config file
 if [[ -r ~/.getgodot.conf ]]
@@ -131,7 +135,9 @@ then
 fi
 
 # files to download
-BUILDFILES=( export_templates-1.0devel.tpz godot_demos-1.0devel.zip godot_x11-1.0devel.32 godot_x11-1.0devel.64 linux_server-1.0devel.64 GodotOSX32-1.0devel.zip godot_win32-1.0devel.exe godot_win64-1.0devel.exe )
+BUILDFILES=( export_templates-1.0devel.tpz godot_demos-1.0devel.zip godot_x11-1.0devel.32 godot_x11-1.0devel.64 linux_server-1.0devel.64 GodotOSX32-1.0devel.zip godot_win32-1.0devel.exe godot_win64-1.0devel.exe bettercollada-1.0devel.zip )
+
+if [[ $GET_COLLADA -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:8} ${BUILDFILES[@]:9}); fi
 
 if [[ $GET_WIN64 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:7} ${BUILDFILES[@]:8}); fi
 
