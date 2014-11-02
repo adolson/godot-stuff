@@ -95,6 +95,7 @@
 #     - removed project path options, as our changes supporting this natively in the engine were merged recently
 #     - added commentary about download options added in 2.5 update
 # 2.7 - added the better collada Blender export plugin to the downloads
+# 2.8 - fixed git build option to use newer scons syntax
 #
 ##################################################################################################################
 
@@ -224,13 +225,18 @@ then
         fi
         cd build-git
         git pull
-        scons bin/godot target=release_debug
+        scons platform=x11
         if [[ -t 0 ]]
         then
                 echo "All done. If this failed, make sure you have all the necessary tools and"
                 echo "libraries installed and try again."
         fi
-        bin/godot
+        if [[ $ARCH == 'x86_64' ]]
+        then
+                bin/godot.x11.tools.64
+        else
+                bin/godot.x11.tools.32
+        fi
 fi
 
 # if we did not choose to only launch, let's run the update block
