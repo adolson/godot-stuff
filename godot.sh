@@ -25,6 +25,8 @@
 # CONFIG:
 #
 # An optional config file can be created as ~/.getgodot.conf.
+# Setting the following option will change which branch to track (release or devel):
+#       BRANCH=devel
 # Setting the following option will change where the Godot builds get downloaded to:
 #       ENGINEPATH=/path/to/godot
 # Setting the following option will change where we download the temporary copy of the latest version of this script:
@@ -96,6 +98,8 @@
 #     - added commentary about download options added in 2.5 update
 # 2.7 - added the better collada Blender export plugin to the downloads
 # 2.8 - fixed git build option to use newer scons syntax
+# 2.9 - yet another change to the build page scraping, now that there are release and devel builds
+#     - add BRANCH config option to switch between release and devel
 #
 ##################################################################################################################
 
@@ -112,6 +116,9 @@ TMPDIR=/tmp/getgodot
 
 # check if we should launch 64-bit or 32-bit
 ARCH=`uname -m`
+
+# branch to track - default is "release", can change to "devel" in user config file
+BRANCH=release
 
 # don't download OSX, Windows, non-arch Linux, or server builds by default
 GET_NONARCHLIN=0
@@ -134,33 +141,6 @@ then
         fi
 	source ~/.getgodot.conf
 fi
-
-# files to download
-BUILDFILES=( export_templates-1.0devel.tpz godot_demos-1.0devel.zip godot_x11-1.0devel.32 godot_x11-1.0devel.64 linux_server-1.0devel.64 GodotOSX32-1.0devel.zip godot_win32-1.0devel.exe godot_win64-1.0devel.exe bettercollada-1.0devel.zip )
-
-if [[ $GET_COLLADA -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:8} ${BUILDFILES[@]:9}); fi
-
-if [[ $GET_WIN64 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:7} ${BUILDFILES[@]:8}); fi
-
-if [[ $GET_WIN32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:6} ${BUILDFILES[@]:7}); fi
-
-if [[ $GET_OSX32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:5} ${BUILDFILES[@]:6}); fi
-
-if [[ $GET_SERVER -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:4} ${BUILDFILES[@]:5}); fi
-
-if [[ $GET_NONARCHLIN -eq 0 ]]
-then
-        if [[ $ARCH == 'x86_64' ]]
-        then
-                BUILDFILES=(${BUILDFILES[@]:0:2} ${BUILDFILES[@]:3})
-        else
-                BUILDFILES=(${BUILDFILES[@]:0:3} ${BUILDFILES[@]:4})
-        fi
-fi
-
-if [[ $GET_DEMOS -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:1} ${BUILDFILES[@]:2}); fi
-
-if [[ $GET_TEMPLATES -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:1}); fi
 
 # make and change to engine directory
 mkdir -p $ENGINEPATH
@@ -242,6 +222,7 @@ fi
 # if we did not choose to only launch, let's run the update block
 if [[ $@ != "launch" ]] && [[ $@ != "git" ]]
 then
+        # find the most recent installed build
         if [[ $ARCH == 'x86_64' ]]
         then
 	        LOCALBUILD=`find build-*/godot_x11*.64 2> /dev/null | sort -V | tail -1 | awk -F- '{ print $2  }' | awk -F/ '{ print $1  }'`
@@ -251,7 +232,9 @@ then
 	LOCALBUILD=${LOCALBUILD:-0}
 
         # grab the latest release date from the builds.html page
-	REMOTEDATE=`wget --server-response --spider $ENGINEURL/builds/builds.html 2>&1 | grep -i last-modified | awk -F": " '{ print $2 }'`
+        REMOTEFILE=`wget -q -O - $ENGINEURL/builds/builds.html | grep $ENGINEURL/$BRANCH | grep godot_x11.64 | awk -F$BRANCH/ '{ print $2 }' | awk -F\" '{ print $1 }'`
+        REMOTEDATE=`echo $REMOTEFILE | awk -F/ '{ print $1 }'`
+        VERSTR=`echo $REMOTEFILE | awk -Fgodot_x11- '{ print $2 }' | sed 's/.64$//g'`
         if [[ $REMOTEDATE != "" ]]
         then
                 LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
@@ -271,22 +254,42 @@ then
 		cd build-$LATESTBUILD
 		if [[ -x $ZENITY ]]
                 then
-                        $ZENITY --notification --text="Downloading new version of Godot Engine ($LATESTBUILD)." &
+                        $ZENITY --notification --text="Downloading new version of Godot Engine $VERSTR ($REMOTEDATE)." &
                 fi
                 if [[ -t 0 ]]
                 then
                         echo -n "Downloading new release: "
                 fi
 
-	        BUILDDATE=`date -d "$REMOTEDATE" +%Y-%m-%d`
+                # files to download
+                BUILDFILES=( export_templates-$VERSTR.tpz godot_demos-$VERSTR.zip godot_x11-$VERSTR.32 godot_x11-$VERSTR.64 linux_server-$VERSTR.64 GodotOSX32-$VERSTR.zip godot_win32-$VERSTR.exe godot_win64-$VERSTR.exe bettercollada-$VERSTR.zip )
+
+                if [[ $GET_COLLADA -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:8} ${BUILDFILES[@]:9}); fi
+                if [[ $GET_WIN64 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:7} ${BUILDFILES[@]:8}); fi
+                if [[ $GET_WIN32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:6} ${BUILDFILES[@]:7}); fi
+                if [[ $GET_OSX32 -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:5} ${BUILDFILES[@]:6}); fi
+                if [[ $GET_SERVER -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:4} ${BUILDFILES[@]:5}); fi
+                if [[ $GET_NONARCHLIN -eq 0 ]]
+                then
+                        if [[ $ARCH == 'x86_64' ]]
+                        then
+                                BUILDFILES=(${BUILDFILES[@]:0:2} ${BUILDFILES[@]:3})
+                        else
+                                BUILDFILES=(${BUILDFILES[@]:0:3} ${BUILDFILES[@]:4})
+                        fi
+                fi
+                if [[ $GET_DEMOS -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:0:1} ${BUILDFILES[@]:2}); fi
+                if [[ $GET_TEMPLATES -eq 0 ]]; then BUILDFILES=(${BUILDFILES[@]:1}); fi
+
 		for i in ${BUILDFILES[@]}
 		do
                         if [[ -t 0 ]]
                         then
 			        echo -n "*"
                         fi
-                        wget $ENGINEURL/devel/$BUILDDATE/$i -q -c
+                        wget $ENGINEURL/$BRANCH/$REMOTEDATE/$i -q -c
 		done
+exit
                 if [[ -t 0 ]]
                 then
 			echo "*"
