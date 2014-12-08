@@ -100,6 +100,9 @@
 # 2.8 - fixed git build option to use newer scons syntax
 # 2.9 - yet another change to the build page scraping, now that there are release and devel builds
 #     - add BRANCH config option to switch between release and devel
+# 3.0 - grr, yet another change to the build page
+#     - use export templates for picking up the version number
+#     - fix accidental line causing exit of script after downloading, but prior to launching
 #
 ##################################################################################################################
 
@@ -232,9 +235,9 @@ then
 	LOCALBUILD=${LOCALBUILD:-0}
 
         # grab the latest release date from the builds.html page
-        REMOTEFILE=`wget -q -O - $ENGINEURL/builds/builds.html | grep $ENGINEURL/$BRANCH | grep godot_x11.64 | awk -F$BRANCH/ '{ print $2 }' | awk -F\" '{ print $1 }'`
+        REMOTEFILE=`wget -q -O - $ENGINEURL/builds/builds.html | grep $ENGINEURL/$BRANCH | grep export_templates.tpz | head -1 | awk -F$BRANCH/ '{ print $2 }' | awk -F\" '{ print $1 }'`
         REMOTEDATE=`echo $REMOTEFILE | awk -F/ '{ print $1 }'`
-        VERSTR=`echo $REMOTEFILE | awk -Fgodot_x11- '{ print $2 }' | sed 's/.64$//g'`
+        VERSTR=`echo $REMOTEFILE | awk -Fexport_templates- '{ print $2 }' | sed 's/.tpz$//g'`
         if [[ $REMOTEDATE != "" ]]
         then
                 LATESTBUILD=`date -d "$REMOTEDATE" +%Y%m%d%H%M`
@@ -289,7 +292,6 @@ then
                         fi
                         wget $ENGINEURL/$BRANCH/$REMOTEDATE/$i -q -c
 		done
-exit
                 if [[ -t 0 ]]
                 then
 			echo "*"
