@@ -103,6 +103,7 @@
 # 3.0 - grr, yet another change to the build page
 #     - use export templates for picking up the version number
 #     - fix accidental line causing exit of script after downloading, but prior to launching
+# 3.1 - remove an unneeded mkdir command missed in the 2.6 update
 #
 ##################################################################################################################
 
@@ -304,9 +305,6 @@ fi
 # if we aren't only updating, launch the latest version
 if [[ $@ != "update" ]] && [[ $@ != "git"  ]]
 then
-	mkdir -p $PROJECTPATH
-	cd $PROJECTPATH
-
         # detect which arch to launch
         if [[ $ARCH == 'x86_64' ]]
         then
