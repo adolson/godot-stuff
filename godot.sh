@@ -33,6 +33,8 @@
 #	TMPDIR=/tmp
 # Setting the following option will change the URL where OKAM hosts the builds.html file (advise against changing this manually):
 #	ENGINEURL=https://godot.blob.core.windows.net/builds/builds.html
+# Setting the following option will allow multi-job compiling for the git option. Set to number of CPU cores to use:
+#       CORES=4
 # Setting the following option will enable downloading the Linux build for the architecture opposite of what you're running.
 # ie: If you are on 64-bit Linux, setting this will download both 64-bit and 32-bit Linux binaries:
 #       GET_NONARCHLIN=1
@@ -104,6 +106,7 @@
 #     - use export templates for picking up the version number
 #     - fix accidental line causing exit of script after downloading, but prior to launching
 # 3.1 - remove an unneeded mkdir command missed in the 2.6 update
+# 3.2 - support building git version with multiple jobs via CORES variable
 #
 ##################################################################################################################
 
@@ -120,6 +123,9 @@ TMPDIR=/tmp/getgodot
 
 # check if we should launch 64-bit or 32-bit
 ARCH=`uname -m`
+
+# support multiple jobs if the cpu is multicore
+CORES=1
 
 # branch to track - default is "release", can change to "devel" in user config file
 BRANCH=release
@@ -155,8 +161,8 @@ cd $ENGINEPATH
 
 ZENITY=`which zenity`
 
-SELF=`readlink -f $0`
-SELFSUM=`md5sum $SELF | cut -d" " -f1`
+SELFSCR=`readlink -f $0`
+SELFSUM=`md5sum $SELFSCR | cut -d" " -f1`
 
 mkdir -p $TMPDIR
 wget -q https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh -O $TMPDIR/godot.sh
@@ -183,8 +189,8 @@ then
 		echo
 		echo "You can update it right now by following these steps:"
 		echo "	* Press Ctrl+C to quit this script"
-		echo "	* Check the changes yourself (optional): diff --suppress-common-lines -dyW150 $SELF $TMPDIR/godot.sh"
-		echo "	* Copy the new version: mv $TMPDIR/godot.sh $SELF"
+		echo "	* Check the changes yourself (optional): diff --suppress-common-lines -dyW150 $SELFSCR $TMPDIR/godot.sh"
+		echo "	* Copy the new version: mv $TMPDIR/godot.sh $SELFSCR"
 		echo "	* Run the script again."
 		echo "Press Enter to continue with the current version of the script."
 		read
@@ -209,7 +215,7 @@ then
         fi
         cd build-git
         git pull
-        scons platform=x11
+        scons -j $CORES platform=x11
         if [[ -t 0 ]]
         then
                 echo "All done. If this failed, make sure you have all the necessary tools and"
