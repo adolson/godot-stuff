@@ -107,6 +107,7 @@
 #     - fix accidental line causing exit of script after downloading, but prior to launching
 # 3.1 - remove an unneeded mkdir command missed in the 2.6 update
 # 3.2 - support building git version with multiple jobs via CORES variable
+# 3.3 - added INSTALL_TEMPLATES option to automatically install export templates into proper directory (default on)
 #
 ##################################################################################################################
 
@@ -142,6 +143,9 @@ GET_DEMOS=1
 GET_TEMPLATES=1
 GET_COLLADA=1
 
+# install templates by default (only if GET_TEMPLATES is on as well)
+INSTALL_TEMPLATES=1
+
 # override any of the above vars in a user config file
 if [[ -r ~/.getgodot.conf ]]
 then
@@ -150,6 +154,12 @@ then
                 echo "Loading user config file."
         fi
 	source ~/.getgodot.conf
+fi
+
+# if user disabled GET_TEMPLATES, disable installing them too
+if [[ $GET_TEMPLATES -eq 0 ]]
+then
+        INSTALL_TEMPLATES=0
 fi
 
 # make and change to engine directory
@@ -189,7 +199,7 @@ then
 		echo
 		echo "You can update it right now by following these steps:"
 		echo "	* Press Ctrl+C to quit this script"
-		echo "	* Check the changes yourself (optional): diff --suppress-common-lines -dyW150 $SELFSCR $TMPDIR/godot.sh"
+		echo "	* Check the changes yourself (optional): diff -u $TMPDIR/godot.sh $SELFSCR"
 		echo "	* Copy the new version: mv $TMPDIR/godot.sh $SELFSCR"
 		echo "	* Run the script again."
 		echo "Press Enter to continue with the current version of the script."
@@ -303,6 +313,13 @@ then
                 then
 			echo "*"
 		        echo "Done!"
+                fi
+
+                # install the export templates automatically
+                if [[ $INSTALL_TEMPLATES -ne 0 ]]
+                then
+                        mkdir -p ~/.godot/templates/
+                        unzip -qo ./export_templates-$VERSTR.tpz -d ~/.godot/templates/
                 fi
 	fi
 fi
