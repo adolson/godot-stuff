@@ -108,6 +108,7 @@
 # 3.1 - remove an unneeded mkdir command missed in the 2.6 update
 # 3.2 - support building git version with multiple jobs via CORES variable
 # 3.3 - added INSTALL_TEMPLATES option to automatically install export templates into proper directory (default on)
+# 3.4 - uses built-in OpenSSL (which is outdated, but newer is not supported)
 #
 ##################################################################################################################
 
@@ -225,7 +226,7 @@ then
         fi
         cd build-git
         git pull
-        scons -j $CORES platform=x11
+        scons -j $CORES platform=x11 builtin_openssl=yes
         if [[ -t 0 ]]
         then
                 echo "All done. If this failed, make sure you have all the necessary tools and"
