@@ -96,6 +96,7 @@ SELFSCR=`readlink -f $0`
 SELFSUM=`md5sum $SELFSCR | cut -d" " -f1`
 
 mkdir -p $TMPDIR
+rm $TMPDIR/godot.sh
 wget -q https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh -O $TMPDIR/godot.sh
 LATESTSUM=`md5sum $TMPDIR/godot.sh | cut -d" " -f1`
 
