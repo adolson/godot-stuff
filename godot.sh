@@ -47,6 +47,7 @@
 #
 # 4.0 - new release that focuses solely on building from source
 #     - config file changed so as to not conflict with old versions
+# 4.1 - added text about adding execute bit when new script version is available
 #
 # As of version 4.0, this script has been changed such that most of the old changelog is no
 # longer relevant. You can check out older commits if you wish to adopt it and modify it
@@ -121,6 +122,7 @@ then
 		echo "	* Press Ctrl+C to quit this script"
 		echo "	* Check the changes yourself (optional): diff -u $TMPDIR/godot.sh $SELFSCR"
 		echo "	* Copy the new version: mv $TMPDIR/godot.sh $SELFSCR"
+		echo "	* Make it executable: chmod +x $SELFSCR"
 		echo "	* Run the script again."
 		echo "Press Enter to continue with the current version of the script."
 		read
