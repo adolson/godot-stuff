@@ -48,6 +48,7 @@
 # 4.0 - new release that focuses solely on building from source
 #     - config file changed so as to not conflict with old versions
 # 4.1 - added text about adding execute bit when new script version is available
+# 4.2 - remove old downloaded script from temp directory if it exists
 #
 # As of version 4.0, this script has been changed such that most of the old changelog is no
 # longer relevant. You can check out older commits if you wish to adopt it and modify it
