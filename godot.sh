@@ -21,10 +21,16 @@
 # CONFIG:
 #
 # An optional config file can be created as ~/.gitgodot.conf.
-# Setting the following option will change the default branch (default is master):
+# Setting the following option will change the default engine branch (default is master):
 #       BRANCH=master
-# Setting the following option will change where the Godot branch checkouts are stored:
-#       ENGINEPATH=/path/to/godot
+# Setting the following option will change where the engine code is stored:
+#       ENGINEPATH=/path/to/godot/code
+# Setting the following option will enable downloading the demos:
+#       GETDEMOS=1
+# Setting the following option will change the default demos branch (default is master):
+#       DEMOBRANCH=master
+# Setting the following option will change where the demo projects are stored:
+#       DEMOPATH=/path/to/godot/demos
 # Setting the following option will change where we download the temporary copy of the latest version of this script:
 #	TMPDIR=/tmp
 # Setting the following option will allow multi-job compiling for the git option. Set to number of CPU cores to use:
@@ -49,6 +55,7 @@
 #     - config file changed so as to not conflict with old versions
 # 4.1 - added text about adding execute bit when new script version is available
 # 4.2 - remove old downloaded script from temp directory if it exists
+# 4.3 - added demo repo and options to enable automatically downloading them
 #
 # As of version 4.0, this script has been changed such that most of the old changelog is no
 # longer relevant. You can check out older commits if you wish to adopt it and modify it
@@ -58,20 +65,29 @@
 
 #------------------------VARS------------------------
 
-# where to keep the Godot Engine builds
-ENGINEPATH=~/.bin/GodotEngine/
+# where to keep the Godot Engine code
+ENGINEPATH=~/.bin/GodotEngine/engine
 
 # temporary directory, used for fetching latest script for comparison purposes
 TMPDIR=/tmp/getgodot
 
-# support multiple jobs if the cpu is multicore
-CORES=1
-
 # branch to track - default is "master"
 BRANCH=master
 
+# should we also checkout the demos?
+GETDEMOS=0
+
+# where to keep the demos
+DEMOPATH=~/.bin/GodotEngine/demos
+
+# branch for demos - default is "master"
+DEMOBRANCH=master
+
 # check if we should launch 64-bit or 32-bit
 ARCH=`uname -m`
+
+# support multiple jobs if the cpu is multicore
+CORES=1
 
 # override any of the above vars in a user config file
 if [[ -r ~/.gitgodot.conf ]]
@@ -83,10 +99,6 @@ then
 	source ~/.gitgodot.conf
 fi
 
-# make and change to engine directory
-mkdir -p $ENGINEPATH
-cd $ENGINEPATH
-
 
 #############################################################################################################
 # start of checking for newer versions of this script
@@ -97,7 +109,7 @@ SELFSCR=`readlink -f $0`
 SELFSUM=`md5sum $SELFSCR | cut -d" " -f1`
 
 mkdir -p $TMPDIR
-rm $TMPDIR/godot.sh
+rm -f $TMPDIR/godot.sh
 wget -q https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh -O $TMPDIR/godot.sh
 LATESTSUM=`md5sum $TMPDIR/godot.sh | cut -d" " -f1`
 
@@ -138,40 +150,72 @@ fi
 #############################################################################################################
 
 
+# make and change to engine directory
+mkdir -p $ENGINEPATH
+cd $ENGINEPATH
+
+git checkout $BRANCH
 
 # user just wants to launch pre-existing binary
 if [[ $@ == "launch" ]]
 then
+
         if [[ $ARCH == 'x86_64' ]]
         then
-                if [[ -x git-$BRANCH/bin/godot.x11.tools.64 ]]
+                if [[ -x $ENGINEPATH/bin/godot.x11.tools.64 ]]
                 then
-                        git-$BRANCH/bin/godot.x11.tools.64
+                        $ENGINEPATH/bin/godot.x11.tools.64
                 else
                         echo "Unable to find executable. Try building first!"
                 fi
         else
-                if [[ -x git-$BRANCH/bin/godot.x11.tools.32 ]]
+                if [[ -x $ENGINEPATH/bin/godot.x11.tools.32 ]]
                 then
-                        git-$BRANCH/bin/godot.x11.tools.32
+                        $ENGINEPATH/bin/godot.x11.tools.32
                 else
                         echo "Unable to find executable. Try building first!"
                 fi
         fi
 # user wants to checkout latest code and build it
 else
+
+        # first grab the demos, if user wants them
+        if [[ $GETDEMOS != 0 ]]
+        then
+                if [[ -t 0 ]]
+                then
+                        echo "Will stash and pull the current demos from github."
+                fi
+
+                if [[ ! -d $DEMOBRANCH ]]
+                then
+                        git clone https://github.com/godotengine/godot-demo-projects.git $DEMOPATH
+                fi
+
+                cd $DEMOPATH
+
+                git stash
+                git checkout $DEMOBRANCH
+                git stash
+                git pull
+        fi
+
+        # now do the engine build
         if [[ -t 0 ]]
         then
                 echo "Will pull and build the current Godot Engine code from github."
         fi
 
-        if [[ ! -d git-$BRANCH ]]
+        if [[ ! -d $ENGINEPATH ]]
         then
-                git clone https://github.com/okamstudio/godot.git git-$BRANCH
+                git clone https://github.com/okamstudio/godot.git $ENGINEPATH
         fi
 
-        cd git-$BRANCH
+        cd $ENGINEPATH
         
+        git stash
+        git checkout $BRANCH
+        git stash
         git pull
         
         scons -j $CORES platform=x11 builtin_openssl=yes
