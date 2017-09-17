@@ -56,6 +56,7 @@
 # 4.1 - added text about adding execute bit when new script version is available
 # 4.2 - remove old downloaded script from temp directory if it exists
 # 4.3 - added demo repo and options to enable automatically downloading them
+# 4.4 - bugfixes
 #
 # As of version 4.0, this script has been changed such that most of the old changelog is no
 # longer relevant. You can check out older commits if you wish to adopt it and modify it
@@ -154,7 +155,11 @@ fi
 mkdir -p $ENGINEPATH
 cd $ENGINEPATH
 
-git checkout $BRANCH
+# make sure we're on the desired branch, if there is a repo here
+if [[ -d .git ]]
+then
+        git checkout $BRANCH
+fi
 
 # user just wants to launch pre-existing binary
 if [[ $@ == "launch" ]]
@@ -187,14 +192,13 @@ else
                         echo "Will stash and pull the current demos from github."
                 fi
 
-                if [[ ! -d $DEMOBRANCH ]]
+                if [[ ! -d $DEMOPATH/.git ]]
                 then
                         git clone https://github.com/godotengine/godot-demo-projects.git $DEMOPATH
                 fi
 
                 cd $DEMOPATH
 
-                git stash
                 git checkout $DEMOBRANCH
                 git stash
                 git pull
@@ -206,14 +210,13 @@ else
                 echo "Will pull and build the current Godot Engine code from github."
         fi
 
-        if [[ ! -d $ENGINEPATH ]]
+        if [[ ! -d $ENGINEPATH/.git ]]
         then
                 git clone https://github.com/okamstudio/godot.git $ENGINEPATH
         fi
 
         cd $ENGINEPATH
         
-        git stash
         git checkout $BRANCH
         git stash
         git pull
