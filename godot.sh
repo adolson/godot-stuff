@@ -67,28 +67,32 @@
 #------------------------VARS------------------------
 
 # where to keep the Godot Engine code
-ENGINEPATH=~/.bin/GodotEngine/engine
+if [ -z ${ENGINEPATH+x} ]; then ENGINEPATH=~/.bin/GodotEngine/engine; fi
 
 # temporary directory, used for fetching latest script for comparison purposes
-TMPDIR=/tmp/getgodot
+if [ -z ${TMPDIR+x} ]; then TMPDIR=/tmp/getgodot; fi
 
 # branch to track - default is "master"
-BRANCH=master
+if [ -z ${BRANCH+x} ]; then BRANCH=master; fi
 
 # should we also checkout the demos?
-GETDEMOS=0
+if [ -z ${GETDEMOS+x} ]; then GETDEMOS=0; fi
 
 # where to keep the demos
-DEMOPATH=~/.bin/GodotEngine/demos
+if [ -z ${DEMOPATH+x} ]; then DEMOPATH=~/.bin/GodotEngine/demos; fi
 
 # branch for demos - default is "master"
-DEMOBRANCH=master
+if [ -z ${DEMOBRANCH+x} ]; then DEMOBRANCH=master; fi
 
 # check if we should launch 64-bit or 32-bit
-ARCH=`uname -m`
+if [ -z ${ARCH+x} ]; then ARCH=`uname -m`; fi
 
 # support multiple jobs if the cpu is multicore
-CORES=1
+if [ -z ${CORES+x} ]; then CORES=1; fi
+
+# allows to switch remote origin to check updates from
+if [ -z ${REMOTE_ORIGIN+x} ]; then REMOTE_ORIGIN=https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh; fi
+
 
 # override any of the above vars in a user config file
 if [[ -r ~/.gitgodot.conf ]]
@@ -111,7 +115,7 @@ SELFSUM=`md5sum $SELFSCR | cut -d" " -f1`
 
 mkdir -p $TMPDIR
 rm -f $TMPDIR/godot.sh
-wget -q https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh -O $TMPDIR/godot.sh
+wget -q $REMOTE_ORIGIN -O $TMPDIR/godot.sh
 LATESTSUM=`md5sum $TMPDIR/godot.sh | cut -d" " -f1`
 
 # make sure the downloaded file is reasonably long (should always be longer than at least 1000 characters)
