@@ -91,7 +91,7 @@ if [ -z ${ARCH+x} ]; then ARCH=`uname -m`; fi
 if [ -z ${CORES+x} ]; then CORES=1; fi
 
 # allows to switch remote origin to check updates from
-if [ -z ${REMOTE_ORIGIN+x} ]; then REMOTE_ORIGIN=https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh; fi
+if [ -z ${REMOTE_RAW_ORIGIN+x} ]; then REMOTE_RAW_ORIGIN=https://raw.githubusercontent.com/adolson/godot-stuff/master/godot.sh; fi
 
 
 # override any of the above vars in a user config file
@@ -115,7 +115,7 @@ SELFSUM=`md5sum $SELFSCR | cut -d" " -f1`
 
 mkdir -p $TMPDIR
 rm -f $TMPDIR/godot.sh
-wget -q $REMOTE_ORIGIN -O $TMPDIR/godot.sh
+wget -q $REMOTE_RAW_ORIGIN -O $TMPDIR/godot.sh
 LATESTSUM=`md5sum $TMPDIR/godot.sh | cut -d" " -f1`
 
 # make sure the downloaded file is reasonably long (should always be longer than at least 1000 characters)
