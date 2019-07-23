@@ -266,6 +266,10 @@ main()
 		say
 		buildGodot
 
+	elif [[ $1 == "which" ]]
+	then
+		echo "$ENGINEPATH/bin/godot.x11.tools.64"
+
 	else
 		launch
 	fi
