@@ -164,7 +164,7 @@ clone()
 }
 
 # $1 PATH
-# $2 BRANCH
+# $2 BRANCH/TAG
 pull()
 {
 	# make and change to directory
@@ -176,7 +176,7 @@ pull()
 	then
 		git stash
 		git checkout $2
-		git pull
+		git fetch origin $2
 	fi
 }
 
@@ -185,7 +185,8 @@ pullGodot()
 {
 	say "# Will pull the current Godot Engine code from github."
 	clone $ENGINEPATH
-	pull $ENGINEPATH $ENGINEBRANCH
+	if [ ! -z ${ENGINETAG+x} ]; then pull $ENGINEPATH $ENGINETAG;
+	else pull $ENGINEPATH $ENGINEBRANCH; fi
 }
 
 buildGodot()
